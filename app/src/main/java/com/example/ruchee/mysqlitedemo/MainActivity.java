@@ -38,7 +38,6 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
 
         dbHandler = new MyDBHandler(MainActivity.this, null, null, 1);
         listAllMovies = dbHandler.getAllMovies();
-//        AddMovieToListView();
 
         lv_movie = (ListView) findViewById(R.id.lvMovie);
         movieAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, listAllMovies);
