@@ -16,7 +16,7 @@ public class MyDBHandler extends SQLiteOpenHelper {
 
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "movieDB.db";
-    public static final String TABLE_MOVIES = "movies";
+    public static final String TABLE_NAME = "movies";
 
     public static final String COLUMN_MID = "movie_id";
     public static final String COLUMN_MOVIE_NAME = "movie_name";
@@ -29,7 +29,7 @@ public class MyDBHandler extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String create_movie_table = "CREATE TABLE " + TABLE_MOVIES + "(" +
+        String create_movie_table = "CREATE TABLE " + TABLE_NAME + "(" +
                 COLUMN_MID + " INTEGER PRIMARY KEY," +
                 COLUMN_MOVIE_NAME + " TEXT," +
                 COLUMN_RELEASE_YEAR + " TEXT" +
@@ -39,7 +39,7 @@ public class MyDBHandler extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_MOVIES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
         onCreate(db);
     }
 
@@ -48,14 +48,27 @@ public class MyDBHandler extends SQLiteOpenHelper {
         ContentValues contentValues = new ContentValues();
         contentValues.put(COLUMN_MOVIE_NAME, movie.get_movie_name());
         contentValues.put(COLUMN_RELEASE_YEAR, movie.get_release_year());
-        db.insert(TABLE_MOVIES, null, contentValues);
+        db.insert(TABLE_NAME, null, contentValues);
     }
+
+    public boolean updateMovie(Movie movie) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_MOVIE_NAME, movie.get_movie_name());
+        contentValues.put(COLUMN_RELEASE_YEAR, movie.get_release_year());
+        db.update(TABLE_NAME, contentValues, COLUMN_MID + " = ? ", new String[] {
+                Integer.toString(movie.get_mid())
+        });
+
+        return true;
+    }
+
 
     public ArrayList<String> getAllMovies() {
         ArrayList<String> movie_list = new ArrayList<String>();
 
         SQLiteDatabase db = this.getReadableDatabase();
-        String select_all = "SELECT * FROM " + TABLE_MOVIES;
+        String select_all = "SELECT * FROM " + TABLE_NAME;
         Cursor resultSet =  db.rawQuery(select_all, null);
         resultSet.moveToFirst();
 
