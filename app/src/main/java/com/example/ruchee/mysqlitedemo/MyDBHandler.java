@@ -15,7 +15,7 @@ import java.util.ArrayList;
 
 public class MyDBHandler extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "movieDB.db";
     public static final String TABLE_MOVIE = "movies";
 
@@ -69,31 +69,52 @@ public class MyDBHandler extends SQLiteOpenHelper {
     public Cursor getMoviebyID(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
         String select_one = "SELECT * FROM " + TABLE_MOVIE +
-                "WHERE " + COLUMN_MID + " = "+ id;
+                " WHERE " + COLUMN_MID + " = "+ id;
         Cursor resultSet = db.rawQuery(select_one, null);
-        db.close();
 
         return resultSet;
     }
 
-
-    public ArrayList<String> getAllMovies() {
-        ArrayList<String> movie_list = new ArrayList<String>();
-
+    public Cursor getAllMovies() {
         SQLiteDatabase db = this.getReadableDatabase();
         String select_all = "SELECT * FROM " + TABLE_MOVIE;
         Cursor resultSet =  db.rawQuery(select_all, null);
-        resultSet.moveToFirst();
 
-        while(resultSet.isAfterLast() == false){
-            movie_list.add(resultSet.getString(resultSet.getColumnIndex(COLUMN_MOVIE_NAME)));
-//            movie_list.add(resultSet.getString(2));
-            resultSet.moveToNext();
-        }
-        resultSet.close();
-        db.close();
-
-        return movie_list;
+        return resultSet;
     }
+
+    // get movie_id of last record
+    public int getLastID() {
+        int _id = 0;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String select_last = "SELECT * FROM " + TABLE_MOVIE +
+                " ORDER BY " + COLUMN_MID + " DESC LIMIT 1";
+        Cursor cursor = db.rawQuery(select_last, null);
+        if (cursor.moveToLast()) {
+            _id = cursor.getInt(0);
+        }
+        cursor.close();
+        db.close();
+        return _id;
+    }
+
+//    public ArrayList<String> getAllMovies() {
+//        ArrayList<String> movie_list = new ArrayList<String>();
+//
+//        SQLiteDatabase db = this.getReadableDatabase();
+//        String select_all = "SELECT * FROM " + TABLE_MOVIE;
+//        Cursor resultSet =  db.rawQuery(select_all, null);
+//        resultSet.moveToFirst();
+//
+//        while(resultSet.isAfterLast() == false){
+//            movie_list.add(resultSet.getString(resultSet.getColumnIndex(COLUMN_MOVIE_NAME)));
+////            movie_list.add(resultSet.getString(2));
+//            resultSet.moveToNext();
+//        }
+//        resultSet.close();
+//        db.close();
+//
+//        return movie_list;
+//    }
 
 }
