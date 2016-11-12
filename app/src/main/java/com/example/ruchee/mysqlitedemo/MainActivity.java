@@ -2,6 +2,7 @@ package com.example.ruchee.mysqlitedemo;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.database.Cursor;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -29,6 +30,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
     ListView lv_movie;
     ActionMode mActionMode;
     int movie_list_pos = -1;
+    int movie_list_id;
     Context ctx = this;
 
     @Override
@@ -50,6 +52,8 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                     return;
                 }
                 movie_list_pos = position;
+                movie_list_id = (int) id;
+
                 // start contextual action bar
                 mActionMode = startActionMode((ActionMode.Callback) ctx);
                 lv_movie.setSelected(true);
@@ -77,12 +81,11 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                         // input validation here - movie name can't be empty
 
                         // insert new movie
-//                        MyDBHandler dbHandler = new MyDBHandler(MainActivity.this, null, null, 1);
                         Movie new_movie =
                                 new Movie(mname.getText().toString(), myear.getText().toString());
                         dbHandler.addNewMovie(new_movie);
 
-                        //update arraylist
+                        // add new movie into arraylist
                         listAllMovies.add(mname.getText().toString());
 
                         // update arrayAdapter
@@ -94,6 +97,8 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                         snackbar.setAction("Undo", new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
+                                // undo add new movie
+
 
                             }
                         });
@@ -145,11 +150,30 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                 View custom_edit_dialog = getLayoutInflater().inflate(R.layout.edit_movie_dialog, null);
                 edit_builder.setView(custom_edit_dialog);
 
+                final EditText mname = (EditText) custom_edit_dialog.findViewById(R.id.movie_name);
+                final EditText myear = (EditText) custom_edit_dialog.findViewById(R.id.release_year);
+
+                // search record by RowID
+                Cursor searchResult = dbHandler.getMoviebyID(movie_list_id);
+
+                mname.setText(searchResult.getString(searchResult.getColumnIndex(dbHandler.COLUMN_MOVIE_NAME)));
+                myear.setText(searchResult.getString(searchResult.getColumnIndex(dbHandler.COLUMN_RELEASE_YEAR)));
+
                 edit_builder.setPositiveButton("Edit", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        // edit selected item function(movie_list_pos)
+                        // edit selected item
+                        Movie update_movie =
+                                new Movie(movie_list_id, mname.getText().toString(), myear.getText().toString());
+                        dbHandler.updateMovie(update_movie);
 
+                        // update movie in arraylist
+                        listAllMovies.set(movie_list_pos, mname.getText().toString());
+
+                        // update arrayAdapter
+                        movieAdapter.notifyDataSetChanged();
+
+                        dialog.dismiss();
                     }
                 });
                 edit_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
