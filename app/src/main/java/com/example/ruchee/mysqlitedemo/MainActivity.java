@@ -24,9 +24,8 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements ActionMode.Callback {
-//    ArrayList<String> movie_list;
     MyDBHandler dbHandler;
-    ArrayList<Integer>  listAllMovies_ID;
+    ArrayList<Integer> listAllMovies_ID;
     ArrayList<String> listAllMovies_Name;
     ArrayAdapter movieAdapter;
     ListView lv_movie;
@@ -44,13 +43,13 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
         listAllMovies_Name = new ArrayList<String>();
 
         dbHandler = new MyDBHandler(MainActivity.this, null, null, 1);
-//        listAllMovies = dbHandler.getAllMovies();
         Cursor allMovies = dbHandler.getAllMovies();
-        Log.d("Binding ListView", "Column Name = " + allMovies.getColumnName(0));
+//        Log.d("Binding ListView", "Column Name = " + allMovies.getColumnName(0));
         allMovies.moveToFirst();
         while(allMovies.isAfterLast() == false){
             listAllMovies_ID.add(allMovies.getInt(0));
             listAllMovies_Name.add(allMovies.getString(allMovies.getColumnIndex(dbHandler.COLUMN_MOVIE_NAME)));
+//            listAllMovies_Name.add("[" + allMovies.getInt(0) + "]" + allMovies.getString(allMovies.getColumnIndex(dbHandler.COLUMN_MOVIE_NAME)));
             allMovies.moveToNext();
         }
         allMovies.close();
@@ -72,11 +71,8 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                 mActionMode = startActionMode((ActionMode.Callback) ctx);
                 lv_movie.setSelected(true);
                 lv_movie.setSelector(R.color.highlight);
-
-//                Toast.makeText(ctx, "ID = " + sel_movie_id, Toast.LENGTH_SHORT).show();
             }
         });
-
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_add_movie);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -102,13 +98,13 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                                 new Movie(mname.getText().toString(), myear.getText().toString());
                         dbHandler.addNewMovie(new_movie);
 
+                        // get last movie_id
+                        final int lastMovie_ID = dbHandler.getLastID();
                         // add new movie into arraylists
-                        listAllMovies_ID.add(dbHandler.getLastID());
+                        listAllMovies_ID.add(lastMovie_ID);
                         listAllMovies_Name.add(mname.getText().toString());
-
                         // update arrayAdapter
                         movieAdapter.notifyDataSetChanged();
-
                         // show snackbar here
                         Snackbar snackbar = Snackbar.make(colayout,
                                 mname.getText().toString() + " is added.", Snackbar.LENGTH_LONG);
@@ -116,11 +112,14 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                             @Override
                             public void onClick(View view) {
                                 // undo add new movie
-
+                                dbHandler.deleteMovie(lastMovie_ID);
+                                // update arraylist
+                                listAllMovies_Name.remove(listAllMovies_Name.size()-1);
+                                // update arrayAdapter
+                                movieAdapter.notifyDataSetChanged();
                             }
                         });
                         snackbar.show();
-
                         dialog.dismiss();
                     }
                 });
@@ -130,20 +129,12 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                         dialog.dismiss();
                     }
                 });
-
                 AlertDialog mAlertDialog = builder.create();
                 mAlertDialog.show();
 
             }
         });
     }
-
-//    public void AddMovieToListView() {
-//        movie_list = new ArrayList<String>();
-//        movie_list.add("Captain America: Civil War");
-//        movie_list.add("Deadpool");
-//        movie_list.add("The Lord of The Ring: The Two Towers");
-//    }
 
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -184,14 +175,14 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                         Movie update_movie =
                                 new Movie(sel_movie_id, mname.getText().toString(), myear.getText().toString());
                         dbHandler.updateMovie(update_movie);
-
                         // update movie in arraylist
                         listAllMovies_Name.set(sel_movie_pos, mname.getText().toString());
-
                         // update arrayAdapter
                         movieAdapter.notifyDataSetChanged();
-
+                        // dismiss dialog
                         dialog.dismiss();
+                        Toast.makeText(ctx, "Updated successfully.",
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
                 edit_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -200,7 +191,6 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                         dialog.dismiss();
                     }
                 });
-
                 AlertDialog edit_alertDialog = edit_builder.create();
                 edit_alertDialog.show();
 
@@ -213,8 +203,16 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                 del_builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        // delete selected item function(movie_list_pos)
-
+                        // delete selected movie
+                        dbHandler.deleteMovie(sel_movie_id);
+                        // update arraylist
+                        listAllMovies_Name.remove(sel_movie_pos);
+                        // update arrayAdapter
+                        movieAdapter.notifyDataSetChanged();
+                        // dismiss dialog
+                        dialog.dismiss();
+                        Toast.makeText(ctx,
+                                "Deleted successfully.", Toast.LENGTH_SHORT).show();
                     }
                 });
                 del_builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -223,7 +221,6 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                         dialog.dismiss();
                     }
                 });
-
                 AlertDialog del_alertDialog = del_builder.create();
                 del_alertDialog.show();
 

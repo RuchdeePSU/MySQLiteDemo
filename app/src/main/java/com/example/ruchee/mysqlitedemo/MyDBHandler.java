@@ -62,7 +62,15 @@ public class MyDBHandler extends SQLiteOpenHelper {
                 Integer.toString(movie.get_mid())
         });
         db.close();
+        return true;
+    }
 
+    public boolean deleteMovie(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_MOVIE, COLUMN_MID + " = ? ", new String[] {
+                Integer.toString(id)
+        });
+        db.close();
         return true;
     }
 
@@ -71,7 +79,6 @@ public class MyDBHandler extends SQLiteOpenHelper {
         String select_one = "SELECT * FROM " + TABLE_MOVIE +
                 " WHERE " + COLUMN_MID + " = "+ id;
         Cursor resultSet = db.rawQuery(select_one, null);
-
         return resultSet;
     }
 
@@ -79,7 +86,6 @@ public class MyDBHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         String select_all = "SELECT * FROM " + TABLE_MOVIE;
         Cursor resultSet =  db.rawQuery(select_all, null);
-
         return resultSet;
     }
 
@@ -89,11 +95,11 @@ public class MyDBHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         String select_last = "SELECT * FROM " + TABLE_MOVIE +
                 " ORDER BY " + COLUMN_MID + " DESC LIMIT 1";
-        Cursor cursor = db.rawQuery(select_last, null);
-        if (cursor.moveToLast()) {
-            _id = cursor.getInt(0);
+        Cursor resultSet = db.rawQuery(select_last, null);
+        if (resultSet.moveToLast()) {
+            _id = resultSet.getInt(0);
         }
-        cursor.close();
+        resultSet.close();
         db.close();
         return _id;
     }
